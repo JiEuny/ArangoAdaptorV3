@@ -40,7 +40,7 @@ async function collectionSetup() {
 
 }
 
-let rawdata = fs.readFileSync('./ngsiDataset/infectionCaseTest.json');
+let rawdata = fs.readFileSync('./ngsiDataset/infectionCase.json');
 let cases = JSON.parse(rawdata);
 
 function storeEntity(bodies) {
