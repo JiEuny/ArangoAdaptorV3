@@ -40,6 +40,10 @@ async function collectionSetup() {
 
 }
 
+// let rawdata = fs.readFileSync('./ngsiDataset/diseaseCode.json');
+// let rawdata = fs.readFileSync('./ngsiDataset/region.json');
+// let rawdata = fs.readFileSync('./ngsiDataset/visitedPlace.json');
+// let rawdata = fs.readFileSync('./ngsiDataset/diseaseTransmission.json');
 let rawdata = fs.readFileSync('./ngsiDataset/infectionCase.json');
 let cases = JSON.parse(rawdata);
 
