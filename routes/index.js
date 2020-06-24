@@ -10,33 +10,34 @@ db.useDatabase("_system");
 db.useBasicAuth("root", "0000");
 
 const entityColl = db.collection('entityColl');
-const entityEdge = db.edgeCollection('entityEdge');
+// const entityEdge = db.edgeCollection('entityEdge');
 const propertyColl = db.collection('propertyColl');
-const propertyEdge = db.edgeCollection('propertyEdge');
+// const propertyEdge = db.edgeCollection('propertyEdge');
+const edgeColl = db.edgeCollection('edgeColl');
 
 collectionSetup();
 
 async function collectionSetup() {
   const entityCollExist = await entityColl.exists();
-  const entityEdgeExist = await entityEdge.exists();
+  // const entityEdgeExist = await entityEdge.exists();
   const propertyCollExist = await propertyColl.exists();
-  const propertyEdgeExist = await propertyEdge.exists();
+  // const propertyEdgeExist = await propertyEdge.exists();
 
   if (entityCollExist != true) {
     entityColl.create();
   }
 
-  if (entityEdgeExist != true) {
-    entityEdge.create();
-  }
+  // if (entityEdgeExist != true) {
+  //   entityEdge.create();
+  // }
 
   if (propertyCollExist != true) {
     propertyColl.create();
   }
 
-  if (propertyEdgeExist != true) {
-    propertyEdge.create();
-  }
+  // if (propertyEdgeExist != true) {
+  //   propertyEdge.create();
+  // }
 
 }
 
@@ -118,7 +119,7 @@ function storeEntity(bodies) {
 
   for (const relationship of relationships) {
     // console.log(relationship);
-    storeEdge(relationship);
+    storeEdge(relationship); 
   }
 }
 
@@ -134,21 +135,21 @@ function storeEdge(bodies) {
           FOR doc IN ${entityColl}
             FILTER doc.id == ${value.object}
             let toId = doc._id
-          INSERT { _from: ${body.id}, _to: toId, attributeName: ${key}} INTO ${entityEdge}
+          INSERT { _from: ${body.id}, _to: toId, attributeName: ${key}, attributeType: ${value.type} } INTO ${edgeColl}
           RETURN NEW
         `).then(function (cursor) {
           // console.log(cursor._result);
         })
-      } else if(key != "id") {
+      } else if(key != "id" && value[0] != null) {
 
         // console.log(value);
         for(const [key2, value2] of Object.entries(value)) {
-          // console.log(value2);
+          // console.log(value2.type);
           db.query(aql`
             FOR doc IN ${entityColl}
               FILTER doc.id == ${value2.object}
               let toId = doc._id
-            INSERT { _from: ${body.id}, _to: toId, attributeName: ${key}} INTO ${entityEdge}
+            INSERT { _from: ${body.id}, _to: toId, attributeName: ${key}, attributeType: ${value2.type}}  INTO ${edgeColl}
             RETURN NEW
           `).then(function (cursor) {
             console.log(cursor._result);
@@ -169,11 +170,10 @@ function storeProperty(bodies) {
         // console.log(value);
         db.query(aql`
           INSERT {
-            type: ${value.type},
             value: ${value.value}
           } INTO ${propertyColl}
           let property = NEW
-          INSERT { _from: ${body.id}, _to: NEW._id, attributeName: ${key}} INTO ${propertyEdge}
+          INSERT { _from: ${body.id}, _to: NEW._id, attributeName: ${key}, attributeType: ${value.type} } INTO ${edgeColl}
           RETURN property
         `).then(function (cursor) {
           // console.log(cursor._result);
