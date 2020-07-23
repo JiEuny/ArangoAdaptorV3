@@ -9,13 +9,17 @@ const fs = require('fs');
 db.useDatabase("_system");
 db.useBasicAuth("root", "0000");
 
-const entityColl = db.collection('entityColl');
+const entityColl = db.collection('testEntityColl');
 // const entityEdge = db.edgeCollection('entityEdge');
-const propertyColl = db.collection('propertyColl');
+const propertyColl = db.collection('testPropertyColl');
 // const propertyEdge = db.edgeCollection('propertyEdge');
-const edgeColl = db.edgeCollection('edgeColl');
+const edgeColl = db.edgeCollection('testEdgeColl');
 
-collectionSetup();
+// const entityColl = db.collection('entityColl');
+// const propertyColl = db.collection('propertyColl');
+// const edgeColl = db.edgeCollection('edgeColl');
+
+// collectionSetup();
 
 async function collectionSetup() {
   const entityCollExist = await entityColl.exists();
@@ -45,7 +49,8 @@ async function collectionSetup() {
 // let rawdata = fs.readFileSync('./ngsiDataset/region.json');
 // let rawdata = fs.readFileSync('./ngsiDataset/visitedPlace.json');
 // let rawdata = fs.readFileSync('./ngsiDataset/diseaseTransmission.json');
-let rawdata = fs.readFileSync('./ngsiDataset/infectionCase.json');
+// let rawdata = fs.readFileSync('./ngsiDataset/infectionCase.json');
+let rawdata = fs.readFileSync('./ngsiDataset/infectionCaseTest.json');
 let cases = JSON.parse(rawdata);
 
 function storeEntity(bodies) {
@@ -139,6 +144,34 @@ function storeEdge(bodies) {
           RETURN NEW
         `).then(function (cursor) {
           // console.log(cursor._result);
+          var property = [{
+            id: cursor._result[0]._id
+          }];
+          var relationship = [{
+            id: cursor._result[0]._id
+          }];
+
+          for (const [key2, value2] of Object.entries(value)) {
+            // console.log(value2);
+            if (value2.type == "Property" || value2.type == "GeoProperty") {
+              // console.log(value2);
+              property = property.map(function (d) {
+                var o = Object.assign({}, d);
+                o[key2] = value2;
+                return o;
+              });
+              // console.log(property);
+              storeProperty(property);
+
+            } else if (value2.type == "Relationship") {
+              relationship = relationship.map(function (d) {
+                var o = Object.assign({}, d);
+                o[key2] = value2;
+                return o;
+              })
+              storeEdge(relationship);
+            }
+          }
         })
       } else if(key != "id" && value[0] != null) {
 
